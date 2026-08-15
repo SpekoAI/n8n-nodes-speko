@@ -34,6 +34,17 @@ jobs:
 
       - run: npm run build
 
+      # Two modes, and the first release is the awkward one.
+      #
+      # v0.1.0 — the package name does not exist on npm yet, and npm's trusted
+      # publisher is configured in *package settings*, so there is nothing to
+      # configure until something is published. Add an npm granular automation
+      # token as the NPM_TOKEN repo secret and run this workflow once.
+      #
+      # After that — configure Trusted Publishing on npmjs.com for this repo and
+      # this workflow filename, delete the NPM_TOKEN secret, and delete the two
+      # `env:` lines below. `id-token: write` alone is then enough. That is
+      # exactly how SpekoAI/typescript-sdk publishes @spekoai/sdk today.
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
