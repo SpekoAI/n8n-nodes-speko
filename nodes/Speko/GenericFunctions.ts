@@ -23,6 +23,33 @@ interface SpekoRequestOptions {
 	encoding?: 'arraybuffer' | 'text';
 	/** Raw (non-JSON) request body, e.g. audio bytes for /v1/transcribe. */
 	rawBody?: Buffer;
+	/** Return `{ body, headers, statusCode }` so callers can read content-type. */
+	returnFullResponse?: boolean;
+}
+
+/**
+ * Audio endpoints answer with whatever format the chosen provider produced, so
+ * the binary field is stamped from the response header rather than assumed.
+ */
+export function mimeTypeToExtension(mimeType: string): string {
+	const subtype = mimeType.split(';')[0].trim().split('/')[1] ?? 'mp3';
+
+	const known: Record<string, string> = {
+		mpeg: 'mp3',
+		mp3: 'mp3',
+		wav: 'wav',
+		'x-wav': 'wav',
+		wave: 'wav',
+		ogg: 'ogg',
+		opus: 'opus',
+		webm: 'webm',
+		flac: 'flac',
+		aac: 'aac',
+		'l16': 'pcm',
+		pcm: 'pcm',
+	};
+
+	return known[subtype] ?? 'mp3';
 }
 
 /**
@@ -77,6 +104,10 @@ export async function spekoApiRequest(
 		requestOptions.encoding = 'arraybuffer';
 	} else if (options.encoding === 'text') {
 		requestOptions.encoding = 'text';
+	}
+
+	if (options.returnFullResponse) {
+		requestOptions.returnFullResponse = true;
 	}
 
 	try {

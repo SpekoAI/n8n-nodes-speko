@@ -11,6 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import {
 	flattenTranscript,
+	mimeTypeToExtension,
 	parseTranscribeStream,
 	spekoApiRequest,
 	type TranscriptTurn,
@@ -590,22 +591,24 @@ export class Speko implements INodeType {
 					const callId = this.getNodeParameter('callId', i) as string;
 					const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i) as string;
 
-					const audio = (await spekoApiRequest.call(
+					const response = (await spekoApiRequest.call(
 						this,
 						'GET',
 						`/v1/calls/${encodeURIComponent(callId)}/recording`,
 						{},
 						{},
-						{ encoding: 'arraybuffer' },
-					)) as Buffer;
+						{ encoding: 'arraybuffer', returnFullResponse: true },
+					)) as { body: Buffer; headers: Record<string, string> };
+
+					const mimeType = response.headers?.['content-type'] ?? 'audio/mpeg';
 
 					returnData.push({
 						json: { callId },
 						binary: {
 							[binaryPropertyName]: await this.helpers.prepareBinaryData(
-								Buffer.from(audio),
-								`${callId}.mp3`,
-								'audio/mpeg',
+								Buffer.from(response.body),
+								`${callId}.${mimeTypeToExtension(mimeType)}`,
+								mimeType,
 							),
 						},
 						pairedItem: { item: i },
@@ -650,22 +653,24 @@ export class Speko implements INodeType {
 					if (options.model) body.model = options.model;
 					if (options.speed) body.speed = options.speed;
 
-					const audio = (await spekoApiRequest.call(
+					const response = (await spekoApiRequest.call(
 						this,
 						'POST',
 						'/v1/synthesize',
 						body,
 						{},
-						{ encoding: 'arraybuffer' },
-					)) as Buffer;
+						{ encoding: 'arraybuffer', returnFullResponse: true },
+					)) as { body: Buffer; headers: Record<string, string> };
+
+					const mimeType = response.headers?.['content-type'] ?? 'audio/mpeg';
 
 					returnData.push({
-						json: { text: body.text, language: intent.language },
+						json: { text: body.text, language: intent.language, mimeType },
 						binary: {
 							[binaryPropertyName]: await this.helpers.prepareBinaryData(
-								Buffer.from(audio),
-								'speech.mp3',
-								'audio/mpeg',
+								Buffer.from(response.body),
+								`speech.${mimeTypeToExtension(mimeType)}`,
+								mimeType,
 							),
 						},
 						pairedItem: { item: i },

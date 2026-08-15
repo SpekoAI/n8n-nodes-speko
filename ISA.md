@@ -2,8 +2,8 @@
 project: n8n-nodes-speko
 task: Build the n8n community node package for the Speko agents platform
 effort: E3
-phase: observe
-progress: 0/36
+phase: complete
+progress: 40/44
 mode: build
 started: 2026-08-15
 updated: 2026-08-15
@@ -59,46 +59,53 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
 
 ## Criteria
 
-- [ ] ISC-1: `~/code/n8n-nodes-speko/package.json` exists with `"name": "n8n-nodes-speko"`
-- [ ] ISC-2: package.json `keywords` contains `n8n-community-node-package`
-- [ ] ISC-3: package.json has an `n8n` block with `n8nNodesApiVersion: 1`
-- [ ] ISC-4: package.json `n8n.credentials` lists `dist/credentials/SpekoApi.credentials.js`
-- [ ] ISC-5: package.json `n8n.nodes` lists both `Speko.node.js` and `SpekoTrigger.node.js`
-- [ ] ISC-6: package.json declares `n8n-workflow` as a peerDependency
-- [ ] ISC-7: package.json `license` is `MIT` and a `LICENSE.md` file exists
-- [ ] ISC-8: `tsconfig.json` exists and emits to `dist/`
-- [ ] ISC-9: `credentials/SpekoApi.credentials.ts` exports class `SpekoApi implements ICredentialType`
-- [ ] ISC-10: the credential declares an `apiKey` property with `typeOptions.password: true`
-- [ ] ISC-11: the credential's `authenticate` block sets `Authorization: Bearer {{$credentials.apiKey}}`
-- [ ] ISC-12: the credential's `test` hits `https://api.speko.dev/v1/organization`
-- [ ] ISC-13: `nodes/Speko/Speko.node.ts` exports class `Speko implements INodeType`
-- [ ] ISC-14: the node declares resources `call`, `agent`, and `speech`
-- [ ] ISC-15: operation `call:place` POSTs to `/v1/sessions/phone`
-- [ ] ISC-16: `call:place` sends `variables` only when the user supplied at least one pair
-- [ ] ISC-17: operation `call:get` GETs `/v1/calls/{id}`
-- [ ] ISC-18: operation `call:getTranscript` GETs `/v1/sessions/{id}/transcript`
-- [ ] ISC-19: `call:getTranscript` returns a flattened `text` field joining `source: text` per turn
-- [ ] ISC-20: operation `call:getRecording` returns n8n binary data, not a JSON blob
-- [ ] ISC-21: operation `agent:list` GETs `/v1/agents` and returns one item per agent
-- [ ] ISC-22: a `loadOptions` method populates an Agent dropdown from `/v1/agents`
-- [ ] ISC-23: operation `speech:synthesize` POSTs `/v1/synthesize` and attaches binary audio output
-- [ ] ISC-24: `speech:synthesize` sends `intent.language` because the API requires it
-- [ ] ISC-25: operation `speech:transcribe` POSTs raw audio to `/v1/transcribe`
-- [ ] ISC-26: `speech:transcribe` sends the `x-speko-intent` header as JSON-encoded routing intent
-- [ ] ISC-27: `speech:transcribe` parses the SSE stream and returns the final `done` payload
-- [ ] ISC-28: `nodes/Speko/SpekoTrigger.node.ts` exports class `SpekoTrigger implements INodeType`
-- [ ] ISC-29: the trigger's `checkExists` / `create` / `delete` hooks call `/v1/webhooks`
-- [ ] ISC-30: the trigger's event selector offers all five `WorkspaceWebhookEventType` values
-- [ ] ISC-31: `nodes/Speko/speko.svg` exists and the node `icon` points at it
-- [ ] ISC-32: a shared `spekoApiRequest` helper centralises base URL, auth, and error mapping
-- [ ] ISC-33: `.github/workflows/publish.yml` runs `npm publish --provenance` with `id-token: write`
-- [ ] ISC-34: `README.md` documents every operation and links the API-key page
-- [ ] ISC-35: `bunx tsc --noEmit` (or the package build) exits 0 with no type errors
-- [ ] ISC-36: `dist/` contains compiled `.js` for both nodes and the credential after a build
-- [ ] ISC-37: unit tests for the SSE parser and transcript flattener pass
-- [ ] ISC-38: Anti: no `sk_live_` key, workspace id, or other secret appears anywhere in the repo
-- [ ] ISC-39: Anti: nothing in this build publishes to npm, creates a GitHub repo, or submits to n8n
-- [ ] ISC-40: Anti: no second credential type for the router — one `spekoApi` credential only
+- [x] ISC-1: `~/code/n8n-nodes-speko/package.json` exists with `"name": "n8n-nodes-speko"`
+- [x] ISC-2: package.json `keywords` contains `n8n-community-node-package`
+- [x] ISC-3: package.json has an `n8n` block with `n8nNodesApiVersion: 1`
+- [x] ISC-4: package.json `n8n.credentials` lists `dist/credentials/SpekoApi.credentials.js`
+- [x] ISC-5: package.json `n8n.nodes` lists both `Speko.node.js` and `SpekoTrigger.node.js`
+- [x] ISC-6: package.json declares `n8n-workflow` as a peerDependency
+- [x] ISC-7: package.json `license` is `MIT` and a `LICENSE.md` file exists
+- [x] ISC-8: `tsconfig.json` exists and emits to `dist/`
+- [x] ISC-9: `credentials/SpekoApi.credentials.ts` exports class `SpekoApi implements ICredentialType`
+- [x] ISC-10: the credential declares an `apiKey` property with `typeOptions.password: true`
+- [x] ISC-11: the credential's `authenticate` block sets `Authorization: Bearer {{$credentials.apiKey}}`
+- [x] ISC-12: the credential's `test` hits `https://api.speko.dev/v1/organization`
+- [x] ISC-13: `nodes/Speko/Speko.node.ts` exports class `Speko implements INodeType`
+- [x] ISC-14: the node declares resources `call`, `agent`, and `speech`
+- [x] ISC-15: operation `call:place` POSTs to `/v1/sessions/phone`
+- [x] ISC-16: `call:place` sends `variables` only when the user supplied at least one pair
+- [x] ISC-17: operation `call:get` GETs `/v1/calls/{id}`
+- [x] ISC-18: operation `call:getTranscript` GETs `/v1/sessions/{id}/transcript`
+- [x] ISC-19: `call:getTranscript` returns a flattened `text` field joining `source: text` per turn
+- [x] ISC-20: operation `call:getRecording` returns n8n binary data, not a JSON blob
+- [x] ISC-21: operation `agent:list` GETs `/v1/agents` and returns one item per agent
+- [x] ISC-22: a `loadOptions` method populates an Agent dropdown from `/v1/agents`
+- [x] ISC-23: operation `speech:synthesize` POSTs `/v1/synthesize` and attaches binary audio output
+- [x] ISC-24: `speech:synthesize` sends `intent.language` because the API requires it
+- [x] ISC-25: operation `speech:transcribe` POSTs raw audio to `/v1/transcribe`
+- [x] ISC-26: `speech:transcribe` sends the `x-speko-intent` header as JSON-encoded routing intent
+- [x] ISC-27: `speech:transcribe` parses the SSE stream and returns the final `done` payload
+- [x] ISC-28: `nodes/Speko/SpekoTrigger.node.ts` exports class `SpekoTrigger implements INodeType`
+- [x] ISC-29: the trigger's `checkExists` / `create` / `delete` hooks call `/v1/webhooks`
+- [x] ISC-30: the trigger's event selector offers all five `WorkspaceWebhookEventType` values
+- [x] ISC-31: `nodes/Speko/speko.svg` exists and the node `icon` points at it
+- [x] ISC-32: a shared `spekoApiRequest` helper centralises base URL, auth, and error mapping
+- [x] ISC-33: `.github/workflows/publish.yml` runs `npm publish --provenance` with `id-token: write`
+- [x] ISC-34: `README.md` documents every operation and links the API-key page
+- [x] ISC-35: `bunx tsc --noEmit` (or the package build) exits 0 with no type errors
+- [x] ISC-36: `dist/` contains compiled `.js` for both nodes and the credential after a build
+- [x] ISC-37: unit tests for the SSE parser and transcript flattener pass
+- [x] ISC-38: Anti: no `sk_live_` key, workspace id, or other secret appears anywhere in the repo
+- [x] ISC-39: Anti: nothing in this build publishes to npm, creates a GitHub repo, or submits to n8n
+- [x] ISC-40: Anti: no second credential type for the router — one `spekoApi` credential only
+- [x] ISC-41: every endpoint the node calls answers 401, not 404, on production
+- [x] ISC-42: the recording and synthesize operations stamp mime type from the response header
+- [x] ISC-43: the trigger's `delete` hook treats a 404/410 endpoint as successfully deleted
+- [DEFERRED-VERIFY] ISC-44: the credential test returns 200 against a live `sk_live_` key — follow-up `n8n-live-roundtrip`
+- [DEFERRED-VERIFY] ISC-45: synthesized audio written to disk actually plays — follow-up `n8n-live-roundtrip`
+- [DEFERRED-VERIFY] ISC-46: transcribe returns correct text for a clip spanning multiple TCP chunks with a >30s silence — follow-up `n8n-live-roundtrip`
+- [DEFERRED-VERIFY] ISC-47: activate → real delivery → deactivate leaves no server-side webhook endpoint, and three activate/deactivate cycles produce no duplicate deliveries — follow-up `n8n-live-roundtrip`
 
 ## Test Strategy
 
@@ -150,5 +157,65 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
   have written the same node from the same blueprint, and the session directive forbids spawning
   agents. The blueprint (`speko-zapier`) plus the OpenAPI spec removes the ambiguity delegation
   would have resolved.
-- **2026-08-15** — npm used for install/build instead of bun. n8n's toolchain, the verification
-  scanner, and the provenance publish path are all npm-native; `bun` is used where it is a drop-in.
+- **2026-08-15** — `bun install` / `bunx` used locally; npm appears only inside the release workflow,
+  where npm provenance is the required publish path. Earlier draft of this entry had it backwards.
+- **2026-08-15** — `inputs: ['main']` as string literals rather than `NodeConnectionTypes.Main`.
+  n8n renamed the runtime const (`NodeConnectionType` is type-only in 1.120), and the literal
+  typechecks across every version, so the node does not pin itself to one n8n minor.
+- **2026-08-15** — `cred-class-field-documentation-url-miscased` disabled. It is documented as
+  main-repo-only but still fires on community credentials, where the sibling rule
+  `documentation-url-not-http-url` demands the opposite. Both cannot be satisfied.
+- **2026-08-15** — SSE transcribe is buffered, not streamed. n8n has no streaming item type, so the
+  node waits for `done` and returns one item. Trade-off accepted: no cross-chunk framing bug is
+  possible, but a very long clip is held in memory.
+- **2026-08-15** — `refined:` after the advisor pass, three defects were fixed rather than noted:
+  the trigger's `delete` hook returned `false` on a 404 (which would trap a user in a workflow they
+  could not deactivate), and both binary operations hardcoded `audio/mpeg` regardless of what the
+  provider returned. Mime type is now read from the response header.
+
+## Changelog
+
+- **2026-08-15**
+  - conjectured: the n8n surface is gated behind a 2–3 month verified-node review, so nothing can
+    ship before Demo Day.
+  - refuted by: n8n's own docs — the community-node path has no review gate at all; verification
+    only adds n8n Cloud installability and in-app discovery on top of a package self-hosters can
+    already install from npm the day it is published.
+  - learned: "n8n" is three separate surfaces with three separate clocks (zero-build HTTP/MCP
+    recipe, ungated community node, gated verified node), and the tracker was pricing all three at
+    the slowest one.
+  - criterion now: ISC-33 requires the provenance workflow so the slow path can start early, but no
+    ISC blocks on verification — the package is done when it installs from npm.
+
+## Verification
+
+- ISC-1..7: `node -e` on package.json — `name=n8n-nodes-speko`, `kw n8n-community-node-package=true`,
+  `apiVersion=1`, credentials/nodes paths point at `dist/`, `peer={"n8n-workflow":"*"}`, `license=MIT`
+- ISC-8, ISC-36: `bun run build` exit 0 → `dist/` holds `SpekoApi.credentials.js`,
+  `GenericFunctions.js`, `Speko.node.js`, `SpekoTrigger.node.js`, `speko.svg`
+- ISC-9..12: `grep` — `class SpekoApi implements ICredentialType`, `typeOptions: { password: true }`,
+  `Authorization: '=Bearer {{$credentials.apiKey}}'`, `url: '/v1/organization'`
+- ISC-13..27: `grep` — node class present; resources `agent`/`call`/`speech`; `/v1/sessions/phone`,
+  `/v1/calls/${…}`, `/v1/sessions/${…}/transcript`, `/v1/calls/${…}/recording`, `/v1/agents`,
+  `/v1/synthesize`, `/v1/transcribe`; `pairs.length > 0` gates `variables`; `x-speko-intent` header
+  set; `parseTranscribeStream` and `flattenTranscript` wired; `prepareBinaryData` on both audio paths
+- ISC-22: `loadOptionsMethod: 'getAgents'` at two call sites (Place Call, Get Agent)
+- ISC-28..30: `grep` — `class SpekoTrigger implements INodeType`; `checkExists`/`create`/`delete`
+  all hitting `/v1/webhooks`; all five `WorkspaceWebhookEventType` values in the selector
+- ISC-31: `icon: 'file:speko.svg'` in both nodes; `nodes/Speko/speko.svg` is 418 bytes
+- ISC-32: `spekoApiRequest.call` at 13 sites across the two node files
+- ISC-33: `.github/workflows/publish.yml` lines 13 and 34 — `id-token: write`, `npm publish --provenance`
+- ISC-34: `grep -c` on README operation rows = 8
+- ISC-35: `bunx tsc --noEmit` exit 0
+- ISC-37: `bunx vitest run` — 10 tests passed, 1 file
+- ISC-38: `rg 'sk_live_[A-Za-z0-9]'` exit 1 (no matches outside node_modules)
+- ISC-39: `npm view n8n-nodes-speko` → 404; `gh repo view SpekoAI/n8n-nodes-speko` → does not resolve
+- ISC-40: `ls credentials/ | wc -l` = 1
+- ISC-41: unauthenticated `fetch` against all nine routes on `api.speko.dev` → 401 on every one,
+  so no route in this node is a documentation guess
+- ISC-42: `mimeTypeToExtension` unit-tested across mpeg/wav/ogg/opus/l16 plus fallback; both audio
+  operations read `content-type` from `returnFullResponse`
+- ISC-43: `grep` — `if (status !== 404 && status !== 410) return false` in the delete hook
+- ISC-44..47: DEFERRED — no `sk_live_` key was available in this session, so no authenticated
+  round-trip was made. The wire contract is inherited from `speko-zapier` and `openapi.json`, not
+  observed. Follow-up task `n8n-live-roundtrip` covers all four.

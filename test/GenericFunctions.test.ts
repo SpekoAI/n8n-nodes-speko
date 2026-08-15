@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
-import { flattenTranscript, parseTranscribeStream } from '../nodes/Speko/GenericFunctions';
+import {
+	flattenTranscript,
+	mimeTypeToExtension,
+	parseTranscribeStream,
+} from '../nodes/Speko/GenericFunctions';
+
+describe('mimeTypeToExtension', () => {
+	it('maps the formats Speko providers actually return', () => {
+		expect(mimeTypeToExtension('audio/mpeg')).toBe('mp3');
+		expect(mimeTypeToExtension('audio/wav')).toBe('wav');
+		expect(mimeTypeToExtension('audio/ogg')).toBe('ogg');
+		expect(mimeTypeToExtension('audio/opus')).toBe('opus');
+	});
+
+	it('ignores content-type parameters', () => {
+		expect(mimeTypeToExtension('audio/l16;rate=16000')).toBe('pcm');
+	});
+
+	it('falls back to mp3 on an unknown type', () => {
+		expect(mimeTypeToExtension('application/octet-stream')).toBe('mp3');
+	});
+});
 
 describe('flattenTranscript', () => {
 	it('joins each turn as "source: text" on its own line', () => {

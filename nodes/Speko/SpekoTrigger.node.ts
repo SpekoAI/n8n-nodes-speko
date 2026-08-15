@@ -161,8 +161,11 @@ export class SpekoTrigger implements INodeType {
 						'DELETE',
 						`/v1/webhooks/${encodeURIComponent(webhookData.webhookId as string)}`,
 					);
-				} catch {
-					return false;
+				} catch (error) {
+					// An endpoint deleted in the Speko console must not trap the user in
+					// an un-deactivatable workflow, so a gone endpoint counts as deleted.
+					const status = Number((error as { httpCode?: string | number })?.httpCode);
+					if (status !== 404 && status !== 410) return false;
 				}
 
 				delete webhookData.webhookId;
