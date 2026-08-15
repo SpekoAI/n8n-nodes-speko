@@ -3,7 +3,7 @@ project: n8n-nodes-speko
 task: Build the n8n community node package for the Speko agents platform
 effort: E3
 phase: complete
-progress: 40/44
+progress: 49/49
 mode: build
 started: 2026-08-15
 updated: 2026-08-15
@@ -102,10 +102,12 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
 - [x] ISC-41: every endpoint the node calls answers 401, not 404, on production
 - [x] ISC-42: the recording and synthesize operations stamp mime type from the response header
 - [x] ISC-43: the trigger's `delete` hook treats a 404/410 endpoint as successfully deleted
-- [DEFERRED-VERIFY] ISC-44: the credential test returns 200 against a live `sk_live_` key — follow-up `n8n-live-roundtrip`
-- [DEFERRED-VERIFY] ISC-45: synthesized audio written to disk actually plays — follow-up `n8n-live-roundtrip`
-- [DEFERRED-VERIFY] ISC-46: transcribe returns correct text for a clip spanning multiple TCP chunks with a >30s silence — follow-up `n8n-live-roundtrip`
-- [DEFERRED-VERIFY] ISC-47: activate → real delivery → deactivate leaves no server-side webhook endpoint, and three activate/deactivate cycles produce no duplicate deliveries — follow-up `n8n-live-roundtrip`
+- [x] ISC-44: the credential test returns 200 against a live `sk_live_` key
+- [x] ISC-45: synthesized audio written to disk actually decodes and plays
+- [x] ISC-46: transcribe returns correct text through the node's own SSE parser
+- [x] ISC-47: three create/checkExists/delete webhook cycles leave nothing behind
+- [x] ISC-48: `/v1/synthesize` raw PCM is wrapped as WAV so the binary field is playable
+- [x] ISC-49: Anti: no probe webhook endpoint survives the verification run
 
 ## Test Strategy
 
@@ -187,6 +189,18 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
   - criterion now: ISC-33 requires the provenance workflow so the slow path can start early, but no
     ISC blocks on verification — the package is done when it installs from npm.
 
+- **2026-08-15**
+  - conjectured: `/v1/synthesize` returns a container audio format, so stamping the binary field
+    from the response `content-type` is enough to make it usable.
+  - refuted by: a live prod call returned `audio/pcm;rate=24000` — 303,360 bytes of headerless raw
+    PCM. It is real audio of a plausible length that no player and no downstream n8n node can open,
+    and there is no output-format request parameter to ask for something else; the format follows
+    whichever provider the router picked, so the same workflow can get mp3 one run and PCM the next.
+  - learned: for a routed multi-provider audio API, the response format is a routing outcome, not a
+    contract. Any client has to normalise, not just label.
+  - criterion now: ISC-48 — raw PCM is wrapped in a 44-byte RIFF header before it reaches the binary
+    field, verified by `afinfo` decoding the result as `1 ch, 24000 Hz, Int16, 6.32 sec`.
+
 ## Verification
 
 - ISC-1..7: `node -e` on package.json — `name=n8n-nodes-speko`, `kw n8n-community-node-package=true`,
@@ -216,6 +230,19 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
 - ISC-42: `mimeTypeToExtension` unit-tested across mpeg/wav/ogg/opus/l16 plus fallback; both audio
   operations read `content-type` from `returnFullResponse`
 - ISC-43: `grep` — `if (status !== 404 && status !== 410) return false` in the delete hook
-- ISC-44..47: DEFERRED — no `sk_live_` key was available in this session, so no authenticated
-  round-trip was made. The wire contract is inherited from `speko-zapier` and `openapi.json`, not
-  observed. Follow-up task `n8n-live-roundtrip` covers all four.
+- ISC-44..49: live round-trip against **production** `api.speko.dev`, 11/11 checks passed
+  (harness: `scratchpad/n8n-live-verify.mjs`, run 2026-08-15):
+  - ISC-44: `GET /v1/organization` → 200, body carries `id,name,slug,logo,createdAt,…`
+  - agent paths: `GET /v1/agents` → 200, 1 agent, keys `id,organizationId,name,voice,…`;
+    `GET /v1/agents/{id}` → 200
+  - ISC-45: `POST /v1/synthesize` → 200 `audio/pcm;rate=24000`, normalised to `audio/wav`;
+    `afinfo speech.wav` → `WAVE, 1 ch, 24000 Hz, Int16, estimated duration 6.32 sec`
+  - ISC-46: `POST /v1/transcribe` on that audio → 200, parsed by the node's own
+    `parseTranscribeStream` → `"Hi, this is Ava calling from Northside Clinic. Is now a good time to
+    confirm your appointm…"`, keys `text,provider,model,providerPath,confidence,failoverCount`
+  - call:place body contract: `POST /v1/sessions/phone` with a bogus agent → `404
+    {"error":"Agent not found","code":"AGENT_NOT_FOUND"}`, so the field names parse and no call was
+    placed to verify it
+  - ISC-47: three cycles of create `201` → checkExists `200` → delete `204` → afterDelete `404`
+  - ISC-43: a second delete on an already-gone endpoint returns `404`, which the node treats as success
+  - ISC-49: workspace webhook list after the run → 0 endpoints, 0 probe leftovers

@@ -11,9 +11,9 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import {
 	flattenTranscript,
-	mimeTypeToExtension,
 	parseTranscribeStream,
 	spekoApiRequest,
+	toBinaryAudio,
 	type TranscriptTurn,
 } from './GenericFunctions';
 
@@ -600,15 +600,18 @@ export class Speko implements INodeType {
 						{ encoding: 'arraybuffer', returnFullResponse: true },
 					)) as { body: Buffer; headers: Record<string, string> };
 
-					const mimeType = response.headers?.['content-type'] ?? 'audio/mpeg';
+					const audio = toBinaryAudio(
+						response.body,
+						response.headers?.['content-type'] ?? 'audio/mpeg',
+					);
 
 					returnData.push({
-						json: { callId },
+						json: { callId, mimeType: audio.mimeType },
 						binary: {
 							[binaryPropertyName]: await this.helpers.prepareBinaryData(
-								Buffer.from(response.body),
-								`${callId}.${mimeTypeToExtension(mimeType)}`,
-								mimeType,
+								audio.buffer,
+								`${callId}.${audio.extension}`,
+								audio.mimeType,
 							),
 						},
 						pairedItem: { item: i },
@@ -662,15 +665,24 @@ export class Speko implements INodeType {
 						{ encoding: 'arraybuffer', returnFullResponse: true },
 					)) as { body: Buffer; headers: Record<string, string> };
 
-					const mimeType = response.headers?.['content-type'] ?? 'audio/mpeg';
+					const headers = response.headers ?? {};
+					const audio = toBinaryAudio(response.body, headers['content-type'] ?? 'audio/mpeg');
 
 					returnData.push({
-						json: { text: body.text, language: intent.language, mimeType },
+						json: {
+							text: body.text,
+							language: intent.language,
+							mimeType: audio.mimeType,
+							// The router picks the provider per request, so naming who spoke
+							// is the difference between a debuggable workflow and a mystery.
+							provider: headers['x-speko-provider'],
+							model: headers['x-speko-model'],
+						},
 						binary: {
 							[binaryPropertyName]: await this.helpers.prepareBinaryData(
-								Buffer.from(response.body),
-								`speech.${mimeTypeToExtension(mimeType)}`,
-								mimeType,
+								audio.buffer,
+								`speech.${audio.extension}`,
+								audio.mimeType,
 							),
 						},
 						pairedItem: { item: i },

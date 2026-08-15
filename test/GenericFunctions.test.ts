@@ -4,7 +4,64 @@ import {
 	flattenTranscript,
 	mimeTypeToExtension,
 	parseTranscribeStream,
+	toBinaryAudio,
+	wrapPcmAsWav,
 } from '../nodes/Speko/GenericFunctions';
+
+describe('wrapPcmAsWav', () => {
+	// /v1/synthesize answered audio/pcm;rate=24000 on a live prod call, and raw
+	// PCM is headerless — it plays nowhere until it is wrapped.
+	const pcm = Buffer.alloc(960, 1);
+
+	it('prefixes a 44-byte RIFF/WAVE header without touching the samples', () => {
+		const wav = wrapPcmAsWav(pcm, 'audio/pcm;rate=24000');
+
+		expect(wav.length).toBe(pcm.length + 44);
+		expect(wav.subarray(0, 4).toString('latin1')).toBe('RIFF');
+		expect(wav.subarray(8, 12).toString('latin1')).toBe('WAVE');
+		expect(wav.subarray(36, 40).toString('latin1')).toBe('data');
+		expect(wav.subarray(44)).toEqual(pcm);
+	});
+
+	it('reads the sample rate out of the content-type', () => {
+		const wav = wrapPcmAsWav(pcm, 'audio/pcm;rate=16000');
+
+		expect(wav.readUInt32LE(24)).toBe(16000);
+		expect(wav.readUInt32LE(28)).toBe(32000); // byte rate = 16000 * 1ch * 2 bytes
+		expect(wav.readUInt16LE(22)).toBe(1); // mono
+		expect(wav.readUInt16LE(34)).toBe(16); // bits per sample
+	});
+
+	it('defaults to 24 kHz when the content-type carries no rate', () => {
+		expect(wrapPcmAsWav(pcm, 'audio/pcm').readUInt32LE(24)).toBe(24000);
+	});
+
+	it('declares the data chunk size the header promises', () => {
+		const wav = wrapPcmAsWav(pcm, 'audio/pcm;rate=24000');
+
+		expect(wav.readUInt32LE(40)).toBe(pcm.length);
+		expect(wav.readUInt32LE(4)).toBe(36 + pcm.length);
+	});
+});
+
+describe('toBinaryAudio', () => {
+	it('wraps raw PCM and reports it as playable wav', () => {
+		const result = toBinaryAudio(Buffer.alloc(100), 'audio/pcm;rate=24000');
+
+		expect(result.mimeType).toBe('audio/wav');
+		expect(result.extension).toBe('wav');
+		expect(result.buffer.subarray(0, 4).toString('latin1')).toBe('RIFF');
+	});
+
+	it('passes a container format through untouched', () => {
+		const mp3 = Buffer.from([0xff, 0xfb, 0x90, 0x00]);
+		const result = toBinaryAudio(mp3, 'audio/mpeg');
+
+		expect(result.mimeType).toBe('audio/mpeg');
+		expect(result.extension).toBe('mp3');
+		expect(result.buffer).toEqual(mp3);
+	});
+});
 
 describe('mimeTypeToExtension', () => {
 	it('maps the formats Speko providers actually return', () => {

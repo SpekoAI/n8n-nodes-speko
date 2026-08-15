@@ -53,6 +53,61 @@ export function mimeTypeToExtension(mimeType: string): string {
 }
 
 /**
+ * `/v1/synthesize` has no output-format parameter — the format follows whichever
+ * provider the router picked, so the same request can answer `audio/mpeg` one
+ * call and `audio/pcm;rate=24000` the next. Raw PCM is headerless: it is real
+ * audio of the right byte length that no player and no downstream n8n node can
+ * open. Wrapping it in a 44-byte RIFF header is what makes the binary field
+ * usable everywhere without changing a sample.
+ */
+export function wrapPcmAsWav(pcm: Buffer, mimeType: string): Buffer {
+	const sampleRate = Number(/rate=(\d+)/.exec(mimeType)?.[1] ?? 24000);
+	const channels = Number(/channels=(\d+)/.exec(mimeType)?.[1] ?? 1);
+	const bitsPerSample = 16;
+
+	const byteRate = (sampleRate * channels * bitsPerSample) / 8;
+	const blockAlign = (channels * bitsPerSample) / 8;
+
+	const header = Buffer.alloc(44);
+	header.write('RIFF', 0);
+	header.writeUInt32LE(36 + pcm.length, 4);
+	header.write('WAVE', 8);
+	header.write('fmt ', 12);
+	header.writeUInt32LE(16, 16); // PCM fmt chunk size
+	header.writeUInt16LE(1, 20); // audio format 1 = PCM
+	header.writeUInt16LE(channels, 22);
+	header.writeUInt32LE(sampleRate, 24);
+	header.writeUInt32LE(byteRate, 28);
+	header.writeUInt16LE(blockAlign, 32);
+	header.writeUInt16LE(bitsPerSample, 34);
+	header.write('data', 36);
+	header.writeUInt32LE(pcm.length, 40);
+
+	return Buffer.concat([header, pcm]);
+}
+
+export interface BinaryAudio {
+	buffer: Buffer;
+	mimeType: string;
+	extension: string;
+}
+
+/** Normalises whatever Speko returned into something a player can open. */
+export function toBinaryAudio(body: Buffer, contentType: string): BinaryAudio {
+	const buffer = Buffer.from(body);
+
+	if (/^audio\/(pcm|l16|x-pcm)/i.test(contentType)) {
+		return {
+			buffer: wrapPcmAsWav(buffer, contentType),
+			mimeType: 'audio/wav',
+			extension: 'wav',
+		};
+	}
+
+	return { buffer, mimeType: contentType, extension: mimeTypeToExtension(contentType) };
+}
+
+/**
  * Speko returns `{ error, code }` on every failure. Surfacing that sentence
  * beats letting n8n print a bare status code, because the API already writes
  * messages that name the fix.
