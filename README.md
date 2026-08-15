@@ -74,6 +74,22 @@ Requires n8n `1.82` or later and Node.js `20.15` or later.
 4. **Speko → Call → Get Transcript** — pull the conversation.
 5. Write the outcome into your CRM.
 
+## Verifying against a live workspace
+
+`npm run build && node scripts/live-verify.mjs` exercises every path the node uses against a real
+Speko workspace: credential test, agent list and lookup, a synthesize → transcribe round trip
+through the node's own SSE parser, the outbound-call body contract (without dialing anyone), and
+three webhook create/check/delete cycles that must leave nothing behind.
+
+It reads an `sk_live_` key from files already on the machine and never prints it. Keys are
+environment-scoped — a staging key returns 401 against `api.speko.dev` — so the script probes each
+candidate and reports which environment it landed in.
+
+**Note on audio format:** `/v1/synthesize` has no output-format parameter. The format follows
+whichever provider the router picked, so the same workflow can receive `audio/mpeg` on one run and
+`audio/pcm;rate=24000` on the next. Raw PCM is headerless and plays nowhere, so the node wraps it in
+a RIFF header before it reaches the binary field. The audio in your workflow is always openable.
+
 ## Resources
 
 - [Speko documentation](https://docs.speko.dev)

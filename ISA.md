@@ -33,9 +33,11 @@ Router (`api.speko.ai`) as a separate credential or a second npm package — the
 `FIT-MATRIX.md` says one Speko listing, agents-led, with TTS/STT riding inside it, and
 `api.speko.dev` already exposes `/v1/synthesize` and `/v1/transcribe` so no second host is needed.
 Phone-number provisioning, knowledge bases, evals, and agent creation are not in v1 — they are
-console workflows, not automation-canvas workflows. Publishing to npm, creating the GitHub repo,
-and submitting to the n8n Creator Portal are explicitly out of scope for this build: this session
-produces the package, Baymurat fires it.
+console workflows, not automation-canvas workflows. **Publishing to npm and submitting to the n8n
+Creator Portal stay out of scope** — the first is gated on a token this session does not hold, the
+second should not start its 2–3 month clock until the package is public. (GitHub repo creation
+*was* out of scope and is no longer: Baymurat authorised finishing the integration, so the repo
+exists. See Decisions.)
 
 ## Constraints
 
@@ -97,7 +99,8 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
 - [x] ISC-36: `dist/` contains compiled `.js` for both nodes and the credential after a build
 - [x] ISC-37: unit tests for the SSE parser and transcript flattener pass
 - [x] ISC-38: Anti: no `sk_live_` key, workspace id, or other secret appears anywhere in the repo
-- [x] ISC-39: Anti: nothing in this build publishes to npm, creates a GitHub repo, or submits to n8n
+- [x] ISC-39: Anti: nothing in this build publishes to npm or submits to the n8n Creator Portal
+  (repo-creation clause dropped 2026-08-15 on explicit instruction — see Decisions)
 - [x] ISC-40: Anti: no second credential type for the router — one `spekoApi` credential only
 - [x] ISC-41: every endpoint the node calls answers 401, not 404, on production
 - [x] ISC-42: the recording and synthesize operations stamp mime type from the response header
@@ -174,6 +177,17 @@ test, plus the provenance-publishing GitHub Actions workflow n8n verification no
   the trigger's `delete` hook returned `false` on a 404 (which would trap a user in a workflow they
   could not deactivate), and both binary operations hardcoded `audio/mpeg` regardless of what the
   provider returned. Mime type is now read from the response header.
+
+- **2026-08-15** — `refined:` scope widened on instruction ("lets finish the integration bro!").
+  Repo `SpekoAI/n8n-nodes-speko` created **private** and pushed. Private, not public, because
+  `PLAN.md` says submissions and plumbing stay silent — only publicly-live integrations get posts.
+  It must be flipped public before any Creator-Portal submission, since verification requires a
+  public source repo.
+- **2026-08-15** — The key that verified this is the **prod** key in `~/code/speko-zapier/.env`.
+  The `sk_live_` key in `~/.claude.json` belongs to the Speko MCP server, which points at
+  `mcp-staging.speko.dev`, and keys are env-scoped: it returns 401 "Invalid API key" against
+  `api.speko.dev`. The harness now probes candidates and reports which environment it landed in
+  rather than assuming.
 
 ## Changelog
 
