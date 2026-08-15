@@ -23,7 +23,10 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm ci
+      # `npm install`, not `npm ci`, because no package-lock.json is committed
+      # yet. Run `npm install` locally once and commit the lockfile, then
+      # switch this back to `npm ci` for reproducible release builds.
+      - run: npm install --no-audit --no-fund
 
       - run: npm run lint
 
