@@ -1,0 +1,67 @@
+{
+  "name": "n8n-nodes-speko",
+  "version": "0.1.0",
+  "description": "Place voice-agent phone calls, read transcripts, synthesize speech, and transcribe audio with Speko",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "speko",
+    "voice-ai",
+    "voice-agent",
+    "phone-calls",
+    "text-to-speech",
+    "speech-to-text"
+  ],
+  "license": "MIT",
+  "homepage": "https://speko.dev",
+  "author": {
+    "name": "Speko",
+    "email": "support@speko.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpekoAI/n8n-nodes-speko.git"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf dist && tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "format": "prettier nodes credentials --write",
+    "lint": "eslint nodes credentials package.json",
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/SpekoApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Speko/Speko.node.js",
+      "dist/nodes/Speko/SpekoTrigger.node.js"
+    ]
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "gulp": "^5.0.0",
+    "n8n-workflow": "^1.82.0",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
