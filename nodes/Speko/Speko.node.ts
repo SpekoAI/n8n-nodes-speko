@@ -6,6 +6,7 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
+	NodeConnectionType,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
@@ -29,8 +30,11 @@ export class Speko implements INodeType {
 		defaults: {
 			name: 'Speko',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		// Type-only assertions keep older hosts free of an enum runtime dependency.
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
+		inputs: ['main' as NodeConnectionType],
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
+		outputs: ['main' as NodeConnectionType],
 		usableAsTool: true,
 		credentials: [
 			{

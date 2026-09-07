@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-speko",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Place voice-agent phone calls, read transcripts, synthesize speech, and transcribe audio with Speko",
   "keywords": [
     "n8n-community-node-package",
@@ -34,7 +34,8 @@
     "lintfix": "eslint nodes credentials package.json --fix",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm run lint"
+    "check:package": "node scripts/check-package-version.cjs",
+    "prepublishOnly": "npm run build && npm run lint && npm run check:package"
   },
   "files": [
     "dist"

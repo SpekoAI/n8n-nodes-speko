@@ -9,6 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import { withSpekoAttribution } from './Attribution';
 
 export const SPEKO_BASE_URL = 'https://api.speko.dev';
 
@@ -145,7 +146,7 @@ export async function spekoApiRequest(
 		method,
 		url: `${SPEKO_BASE_URL}${endpoint}`,
 		qs,
-		headers: { ...(options.headers ?? {}) },
+		headers: withSpekoAttribution(options.headers),
 		json: options.encoding === undefined,
 	};
 
