@@ -7,6 +7,7 @@ import type {
 	INodeTypeDescription,
 	IWebhookFunctions,
 	IWebhookResponseData,
+	NodeConnectionType,
 } from 'n8n-workflow';
 
 import { spekoApiRequest } from './GenericFunctions';
@@ -24,7 +25,9 @@ export class SpekoTrigger implements INodeType {
 			name: 'Speko Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		// Type-only assertions keep older hosts free of an enum runtime dependency.
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
+		outputs: ['main' as NodeConnectionType],
 		credentials: [
 			{
 				name: 'spekoApi',

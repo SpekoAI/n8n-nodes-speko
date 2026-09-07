@@ -4,6 +4,7 @@ import type {
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
+import { withSpekoAttribution } from '../nodes/Speko/Attribution';
 
 export class SpekoApi implements ICredentialType {
 	name = 'spekoApi';
@@ -40,6 +41,7 @@ export class SpekoApi implements ICredentialType {
 		request: {
 			baseURL: 'https://api.speko.dev',
 			url: '/v1/organization',
+			headers: withSpekoAttribution(),
 		},
 	};
 }
